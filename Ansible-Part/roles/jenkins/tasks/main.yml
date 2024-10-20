@@ -1,0 +1,32 @@
+---
+- name: Add Jenkins Repo
+  ansible.builtin.shell:
+    cmd: |
+      wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+      echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" \
+        https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+        /etc/apt/sources.list.d/jenkins.list > /dev/null
+  register: check_jenkins_repo
+      
+
+- name: Update repositories cache
+  ansible.builtin.apt:
+    update_cache: yes
+  when: check_jenkins_repo.changed == true
+
+
+- name: Install Java
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+  loop: 
+    - fontconfig
+    - openjdk-17-jre
+  register: check_java
+
+
+- name: Install "Jenkins" package
+  ansible.builtin.apt:
+    name: jenkins
+    state: latest
+  when: check_java.changed == true

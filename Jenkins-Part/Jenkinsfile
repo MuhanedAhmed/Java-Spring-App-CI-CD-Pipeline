@@ -1,0 +1,62 @@
+pipeline{
+    
+  agent any
+  
+  stages{
+      
+    stage('Build Maven Project'){
+
+      steps{
+          
+        script{
+
+          dir('Source-Code') {
+              withMaven(maven: 'Maven 3') {
+                  sh 'mvn clean package'
+              }
+          }
+        }
+      }
+    }
+        
+        
+    stage('Build th Docker Image'){
+
+      steps{
+
+        dir('Docker-Part'){
+
+          sh "docker build . -t mohanedahmed/petclinic-app:latest"
+          withCredentials([usernamePassword(credentialsId: 'myDockerHub', passwordVariable: 'pass', usernameVariable: 'user')]) {
+            sh "docker login -u $user -p $pass"
+            sh "docker push mohanedahmed/petclinic-app:latest"
+          }  
+        }
+      }            
+    }
+      
+
+    stage('Deploy using Docker-Compose'){
+
+      steps{
+
+        dir('Docker-Part') {
+            sh 'docker-compose down'
+            sh 'docker-compose up -d'
+        }
+      }     
+    }
+  }
+
+  post {
+        always {
+            archiveArtifacts artifacts: 'Source-Code/target/*.jar', allowEmptyArchive: true
+            cleanWs()
+        }
+        failure {
+            mail to: 'manoahmad97@gmail.com',
+                 subject: 'Jenkins Build Failed: PetClinic',
+                 body: 'The build has failed. Please check the Jenkins logs.'
+        }
+    }
+}

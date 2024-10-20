@@ -1,0 +1,9 @@
+---
+- name: Install Maven
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop: 
+    - default-jdk
+    - maven

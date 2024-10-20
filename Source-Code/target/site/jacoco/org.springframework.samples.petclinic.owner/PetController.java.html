@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PetController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">petclinic</a> &gt; <a href="index.source.html" class="el_package">org.springframework.samples.petclinic.owner</a> &gt; <span class="el_source">PetController.java</span></div><h1>PetController.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2012-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.samples.petclinic.owner;
+
+import java.time.LocalDate;
+import java.util.Collection;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import jakarta.validation.Valid;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+/**
+ * @author Juergen Hoeller
+ * @author Ken Krebs
+ * @author Arjen Poutsma
+ */
+@Controller
+@RequestMapping(&quot;/owners/{ownerId}&quot;)
+class PetController {
+
+	private static final String VIEWS_PETS_CREATE_OR_UPDATE_FORM = &quot;pets/createOrUpdatePetForm&quot;;
+
+	private final OwnerRepository owners;
+
+<span class="fc" id="L49">	public PetController(OwnerRepository owners) {</span>
+<span class="fc" id="L50">		this.owners = owners;</span>
+<span class="fc" id="L51">	}</span>
+
+	@ModelAttribute(&quot;types&quot;)
+	public Collection&lt;PetType&gt; populatePetTypes() {
+<span class="fc" id="L55">		return this.owners.findPetTypes();</span>
+	}
+
+	@ModelAttribute(&quot;owner&quot;)
+	public Owner findOwner(@PathVariable(&quot;ownerId&quot;) int ownerId) {
+
+<span class="fc" id="L61">		Owner owner = this.owners.findById(ownerId);</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">		if (owner == null) {</span>
+<span class="nc" id="L63">			throw new IllegalArgumentException(&quot;Owner ID not found: &quot; + ownerId);</span>
+		}
+<span class="fc" id="L65">		return owner;</span>
+	}
+
+	@ModelAttribute(&quot;pet&quot;)
+	public Pet findPet(@PathVariable(&quot;ownerId&quot;) int ownerId,
+			@PathVariable(name = &quot;petId&quot;, required = false) Integer petId) {
+
+<span class="fc bfc" id="L72" title="All 2 branches covered.">		if (petId == null) {</span>
+<span class="fc" id="L73">			return new Pet();</span>
+		}
+
+<span class="fc" id="L76">		Owner owner = this.owners.findById(ownerId);</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">		if (owner == null) {</span>
+<span class="nc" id="L78">			throw new IllegalArgumentException(&quot;Owner ID not found: &quot; + ownerId);</span>
+		}
+<span class="fc" id="L80">		return owner.getPet(petId);</span>
+	}
+
+	@InitBinder(&quot;owner&quot;)
+	public void initOwnerBinder(WebDataBinder dataBinder) {
+<span class="fc" id="L85">		dataBinder.setDisallowedFields(&quot;id&quot;);</span>
+<span class="fc" id="L86">	}</span>
+
+	@InitBinder(&quot;pet&quot;)
+	public void initPetBinder(WebDataBinder dataBinder) {
+<span class="fc" id="L90">		dataBinder.setValidator(new PetValidator());</span>
+<span class="fc" id="L91">	}</span>
+
+	@GetMapping(&quot;/pets/new&quot;)
+	public String initCreationForm(Owner owner, ModelMap model) {
+<span class="fc" id="L95">		Pet pet = new Pet();</span>
+<span class="fc" id="L96">		owner.addPet(pet);</span>
+<span class="fc" id="L97">		model.put(&quot;pet&quot;, pet);</span>
+<span class="fc" id="L98">		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;</span>
+	}
+
+	@PostMapping(&quot;/pets/new&quot;)
+	public String processCreationForm(Owner owner, @Valid Pet pet, BindingResult result, ModelMap model,
+			RedirectAttributes redirectAttributes) {
+<span class="pc bpc" id="L104" title="3 of 6 branches missed.">		if (StringUtils.hasText(pet.getName()) &amp;&amp; pet.isNew() &amp;&amp; owner.getPet(pet.getName(), true) != null) {</span>
+<span class="nc" id="L105">			result.rejectValue(&quot;name&quot;, &quot;duplicate&quot;, &quot;already exists&quot;);</span>
+		}
+
+<span class="fc" id="L108">		LocalDate currentDate = LocalDate.now();</span>
+<span class="pc bpc" id="L109" title="2 of 4 branches missed.">		if (pet.getBirthDate() != null &amp;&amp; pet.getBirthDate().isAfter(currentDate)) {</span>
+<span class="nc" id="L110">			result.rejectValue(&quot;birthDate&quot;, &quot;typeMismatch.birthDate&quot;);</span>
+		}
+
+<span class="fc" id="L113">		owner.addPet(pet);</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">		if (result.hasErrors()) {</span>
+<span class="fc" id="L115">			model.put(&quot;pet&quot;, pet);</span>
+<span class="fc" id="L116">			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;</span>
+		}
+
+<span class="fc" id="L119">		this.owners.save(owner);</span>
+<span class="fc" id="L120">		redirectAttributes.addFlashAttribute(&quot;message&quot;, &quot;New Pet has been Added&quot;);</span>
+<span class="fc" id="L121">		return &quot;redirect:/owners/{ownerId}&quot;;</span>
+	}
+
+	@GetMapping(&quot;/pets/{petId}/edit&quot;)
+	public String initUpdateForm(Owner owner, @PathVariable(&quot;petId&quot;) int petId, ModelMap model,
+			RedirectAttributes redirectAttributes) {
+<span class="fc" id="L127">		Pet pet = owner.getPet(petId);</span>
+<span class="fc" id="L128">		model.put(&quot;pet&quot;, pet);</span>
+<span class="fc" id="L129">		return VIEWS_PETS_CREATE_OR_UPDATE_FORM;</span>
+	}
+
+	@PostMapping(&quot;/pets/{petId}/edit&quot;)
+	public String processUpdateForm(@Valid Pet pet, BindingResult result, Owner owner, ModelMap model,
+			RedirectAttributes redirectAttributes) {
+
+<span class="fc" id="L136">		String petName = pet.getName();</span>
+
+		// checking if the pet name already exist for the owner
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">		if (StringUtils.hasText(petName)) {</span>
+<span class="fc" id="L140">			Pet existingPet = owner.getPet(petName.toLowerCase(), false);</span>
+<span class="pc bpc" id="L141" title="2 of 4 branches missed.">			if (existingPet != null &amp;&amp; existingPet.getId() != pet.getId()) {</span>
+<span class="nc" id="L142">				result.rejectValue(&quot;name&quot;, &quot;duplicate&quot;, &quot;already exists&quot;);</span>
+			}
+		}
+
+<span class="fc" id="L146">		LocalDate currentDate = LocalDate.now();</span>
+<span class="pc bpc" id="L147" title="1 of 4 branches missed.">		if (pet.getBirthDate() != null &amp;&amp; pet.getBirthDate().isAfter(currentDate)) {</span>
+<span class="nc" id="L148">			result.rejectValue(&quot;birthDate&quot;, &quot;typeMismatch.birthDate&quot;);</span>
+		}
+
+<span class="fc bfc" id="L151" title="All 2 branches covered.">		if (result.hasErrors()) {</span>
+<span class="fc" id="L152">			model.put(&quot;pet&quot;, pet);</span>
+<span class="fc" id="L153">			return VIEWS_PETS_CREATE_OR_UPDATE_FORM;</span>
+		}
+
+<span class="fc" id="L156">		owner.addPet(pet);</span>
+<span class="fc" id="L157">		this.owners.save(owner);</span>
+<span class="fc" id="L158">		redirectAttributes.addFlashAttribute(&quot;message&quot;, &quot;Pet details has been edited&quot;);</span>
+<span class="fc" id="L159">		return &quot;redirect:/owners/{ownerId}&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
