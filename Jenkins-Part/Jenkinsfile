@@ -1,6 +1,10 @@
 pipeline{
     
   agent any
+
+  tools{
+      maven "Maven 3"
+  }
   
   stages{
       
@@ -11,9 +15,9 @@ pipeline{
         script{
 
           dir('Source-Code') {
-              withMaven(maven: 'Maven 3') {
-                  sh 'mvn clean package'
-              }
+            
+            sh 'mvn clean package'
+      
           }
         }
       }
