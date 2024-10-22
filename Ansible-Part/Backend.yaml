@@ -1,0 +1,12 @@
+- name: install maven, jenkins and docker on backend servers
+  hosts: Backend-Servers
+  gather_facts: true
+  roles:
+    - role: docker
+      tags: docker
+
+    - role: jenkins
+      tags: jenkins
+    
+    - role: maven
+      tags: maven

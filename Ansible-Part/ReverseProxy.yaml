@@ -1,0 +1,6 @@
+- name: install nginx on my reverse proxy servers
+  hosts: Backend-Servers
+  gather_facts: true
+  roles:
+    - role: nginx
+      tags: nginx
