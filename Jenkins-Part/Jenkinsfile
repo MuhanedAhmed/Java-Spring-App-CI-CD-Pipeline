@@ -8,20 +8,21 @@ pipeline{
   
   stages{
       
-    // stage('Build Maven Project'){
+    stage('Build Maven Project'){
 
-    //   steps{
+      steps{
           
-    //     script{
+        script{
 
-    //       dir('Source-Code') {
+          dir('Source-Code') {
             
-    //         sh 'mvn clean package'
+            sh 'mvn clean package'
+            sh 'cp target/spring-petclinic-3.3.0-SNAPSHOT.jar ../Docker-Part/'
       
-    //       }
-    //     }
-    //   }
-    // }
+          }
+        }
+      }
+    }
         
         
     stage('Build th Docker Image'){
@@ -45,8 +46,8 @@ pipeline{
       steps{
 
         dir('Docker-Part') {
-            sh 'docker-compose down'
-            sh 'docker-compose up -d'
+            sh 'docker compose down'
+            sh 'docker compose up -d'
         }
       }     
     }
