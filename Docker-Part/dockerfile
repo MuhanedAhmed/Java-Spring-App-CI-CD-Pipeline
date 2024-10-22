@@ -2,7 +2,7 @@ FROM eclipse-temurin:21
 
 RUN mkdir -p /opt/app
 
-COPY ../Source-Code/target/spring-petclinic-*.jar /opt/app
+COPY ../Source-Code/target/spring-petclinic-3.3.0-SNAPSHOT.jar /opt/app
 
 WORKDIR /opt/app
 
