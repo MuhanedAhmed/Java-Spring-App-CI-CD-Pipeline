@@ -8,20 +8,20 @@ pipeline{
   
   stages{
       
-    stage('Build Maven Project'){
+    // stage('Build Maven Project'){
 
-      steps{
+    //   steps{
           
-        script{
+    //     script{
 
-          dir('Source-Code') {
+    //       dir('Source-Code') {
             
-            sh 'mvn clean package'
+    //         sh 'mvn clean package'
       
-          }
-        }
-      }
-    }
+    //       }
+    //     }
+    //   }
+    // }
         
         
     stage('Build th Docker Image'){
